@@ -1,0 +1,32 @@
+input {
+ tcp {
+   port => 1056
+   type => "olds3"
+ }
+}
+filter {
+grok {
+
+match => [ "message", "%{USERNAME:UUID} %{USERNAME:AwsFolder} \[%{HTTPDATE:TimeStamp}\] %{IP:resp_ip} %{NOTSPACE:requester} %{NOTSPACE:request_id} %{NOTSPACE:operation} %{NOTSPACE:key} \"%{WORD:httpreq} %{URIPATHPARAM:folder} %{NOTSPACE:HTTPtype} %{NUMBER:key} %{NOTSPACE:response} %{NUMBER:somenum} - %{NUMBER:othernum} \- \"\-\" \"%{GREEDYDATA:UserageString}" ]
+
+}
+
+date {
+
+locale => "en"
+
+match => ["timestamp", "d/MMM/YYYY:HH:mm:ss Z"]
+
+}
+mutate {
+
+remove_field=> [ "message" ]
+
+}
+geoip { source => "resp_ip" }
+}
+output {
+ elasticsearch {
+   index => "amazonaws"
+}
+}'
